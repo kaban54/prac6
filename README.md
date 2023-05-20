@@ -130,6 +130,8 @@ uint64_t Crc32Hash (void *key)
 ![](./images/float1.png)
 ![](./images/float2.png)
 
+Снова обе функции хорошо распределили ключи по цепочкам по тем же причинам.
+
 ### Строки
 
 ![](./images/str1.png)
