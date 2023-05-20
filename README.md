@@ -121,6 +121,8 @@ uint64_t Crc32Hash (void *key)
 ![](./images/int1.png)
 ![](./images/int2.png)
 
+Обе функции хорошо справились со своей задачей и длины всех цепочек не сильно отличаются от 100.
+
 ### float
 
 ![](./images/float1.png)
