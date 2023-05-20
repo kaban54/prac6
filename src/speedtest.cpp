@@ -1,58 +1,73 @@
 #include "hashtable.h"
 #include "hashfuncs.h"
-#include "textfuncs.h"
 #include <time.h>
 
-const char *const input_file_name = "input.txt";
+const size_t HASHTABLE_SIZE = 99991;
+const size_t NUM_OF_KEYS = 100000;
 
-const size_t HASHTABLE_SIZE = 9973;
-const size_t NUM_OF_OPS     = 20000000;
+void HashTableSpeedTest (HashTable *htable, const char *filename, int *keys);
+void GenerateIntKeys (int *intkeys, size_t num_of_keys);
+void FillIntTables (HashTable *hashtables, size_t num_of_tables, int *keys, size_t num_of_keys);
 
-
-void HashTableSpeedTest (HashTable *htable, Text *txt);
-void LoadWords          (HashTable *htable, Text *txt);
 
 int main ()
 {
-    Text txt;
-    ReadText (input_file_name, &txt);
-
     HashTable htable = {};
-    HashTableCtor (&htable, Crc32Hash, HASHTABLE_SIZE);
+    HashTableCtor (&htable, IntHash1, int_cmp, HASHTABLE_SIZE);
 
-    LoadWords (&htable, &txt);
+    int *intkeys = (int *) calloc (NUM_OF_KEYS, sizeof (int));
 
-    HashTableSpeedTest (&htable, &txt);
+    GenerateIntKeys (intkeys, NUM_OF_KEYS);
+    FillIntTables (&htable, 1, intkeys, NUM_OF_KEYS);
 
-    FreeText (&txt);
+    HashTableSpeedTest (&htable, "output.txt", intkeys);
+
+    HashTableDtor (&htable);
+    free (intkeys);
 
     return 0;
 }
 
-void HashTableSpeedTest (HashTable *htable, Text *txt)
+
+void HashTableSpeedTest (HashTable *htable, const char *filename, int *keys)
 {
-    assert (htable != nullptr);
-    assert (txt    != nullptr);
+    FILE *file = fopen (filename, "w");
 
-    clock_t start = clock ();
-
-    for (size_t index = 0; index < NUM_OF_OPS; index += 1)
+    char *ops = (char *) calloc (1000000, sizeof (char));
+    srand (time (NULL));
+    
+    for (int num_of_ops = 10000; num_of_ops <= 1000000; num_of_ops += 10000)
     {
-        HashTableFind (htable, txt -> data [index % txt -> len].str);
+        for (int i = 0; i < num_of_ops; i++) ops [i] = rand () % 3;
+
+        clock_t start = clock ();
+
+        for (int i = 0; i < num_of_ops; i++)
+        {
+            if      (ops [i] == 0) HashTableInsert (htable, (void *)(keys + i % NUM_OF_KEYS), (void *)(keys + i % NUM_OF_KEYS));
+            else if (ops [i] == 1) HashTableRemove (htable, (void *)(keys + i % NUM_OF_KEYS));
+            else if (ops [i] == 2) HashTableFind   (htable, (void *)(keys + i % NUM_OF_KEYS));
+        }
+
+        clock_t end = clock ();
+ 
+        fprintf (file,   "%d %lf\n", num_of_ops, (double)(end - start) / CLOCKS_PER_SEC);
+        fprintf (stdout, "%d %lf\n", num_of_ops, (double)(end - start) / CLOCKS_PER_SEC);
     }
 
-    clock_t end = clock ();
-
-    printf ("%ld find operations done.\ntime = %lfs\n", NUM_OF_OPS, (double)(end - start) / CLOCKS_PER_SEC);
+    fclose (file);
 }
 
-void LoadWords (HashTable *htable, Text *txt)
-{
-    assert (htable != nullptr);
-    assert (txt    != nullptr);
 
-    for (size_t index = 0; index < txt -> len; index += 2)
+void GenerateIntKeys (int *intkeys, size_t num_of_keys)
+{
+    for (int i = 0; i < num_of_keys; i++) intkeys [i] = (rand () << 15) + rand ();
+}
+
+void FillIntTables (HashTable *hashtables, size_t num_of_tables, int *keys, size_t num_of_keys)
+{
+    for (size_t tablenum = 0; tablenum < num_of_tables; tablenum++)
     {
-        HashTableInsert (htable, txt -> data [index].str);
+        for (size_t i = 0; i < num_of_keys; i++) HashTableInsert (hashtables + tablenum, (void *)(keys + i), (void *)(keys + i));
     }
 }
