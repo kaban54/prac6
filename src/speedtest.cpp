@@ -20,7 +20,7 @@ int main ()
     GenerateIntKeys (intkeys, NUM_OF_KEYS);
     FillIntTables (&htable, 1, intkeys, NUM_OF_KEYS);
 
-    HashTableSpeedTest (&htable, "output.txt", intkeys);
+    HashTableSpeedTest (&htable, "output2.txt", intkeys);
 
     HashTableDtor (&htable);
     free (intkeys);
@@ -38,15 +38,15 @@ void HashTableSpeedTest (HashTable *htable, const char *filename, int *keys)
     
     for (int num_of_ops = 10000; num_of_ops <= 1000000; num_of_ops += 10000)
     {
-        for (int i = 0; i < num_of_ops; i++) ops [i] = rand () % 3;
+        for (int i = 0; i < num_of_ops; i++) ops [i] = rand () % 4;
 
         clock_t start = clock ();
 
         for (int i = 0; i < num_of_ops; i++)
         {
-            if      (ops [i] == 0) HashTableInsert (htable, (void *)(keys + i % NUM_OF_KEYS), (void *)(keys + i % NUM_OF_KEYS));
-            else if (ops [i] == 1) HashTableRemove (htable, (void *)(keys + i % NUM_OF_KEYS));
-            else if (ops [i] == 2) HashTableFind   (htable, (void *)(keys + i % NUM_OF_KEYS));
+            if      (ops [i] <= 1) HashTableInsert (htable, (void *)(keys + i % NUM_OF_KEYS), (void *)(keys + i % NUM_OF_KEYS));
+            else if (ops [i] == 2) HashTableRemove (htable, (void *)(keys + i % NUM_OF_KEYS));
+            else if (ops [i] == 3) HashTableFind   (htable, (void *)(keys + i % NUM_OF_KEYS));
         }
 
         clock_t end = clock ();
